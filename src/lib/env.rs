@@ -6,5 +6,8 @@ pub struct Env {
     pub port: String,
 
     #[clap(env)]
-    pub google_project_id: Option<String>,
+    pub google_project_id: String,
+
+    #[clap(env)]
+    pub firebase_database: String
 }
