@@ -50,7 +50,7 @@ impl MessagingTypeImpl {
     pub async fn new(typ: &MessagingType, env: Arc<Env>) -> Result<Self> {
         match typ {
             MessagingType::PubSub => {
-                let project_id = env.google_project_id.clone().unwrap_or_default();
+                let project_id = env.google_project_id.clone();
 
                 let messaging = PubSubMessaging::new(project_id).await?;
                 Ok(MessagingTypeImpl::PubSub(messaging))
