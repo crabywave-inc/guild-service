@@ -1,3 +1,5 @@
+use tracing::info;
+
 use crate::domain::guild::entities::error::GuildError;
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::GuildRepository;
@@ -57,6 +59,7 @@ impl GuildRepository for FirestoreGuildRepository {
     }
 
     async fn delete_by_id(&self, id: &str) -> Result<(), GuildError> {
+        info!("Deleting guild with id: {}", id);
         self.firestore
             .db
             .fluent()
@@ -67,6 +70,7 @@ impl GuildRepository for FirestoreGuildRepository {
             .await
             .map_err(|e| GuildError::DeleteError(e.to_string()))?;
 
+        info!("Guild with id: {} deleted", id);
         Ok(())
     }
 }

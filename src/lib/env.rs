@@ -13,4 +13,7 @@ pub struct Env {
 
     #[clap(env)]
     pub firebase_database: String,
+
+    #[clap(env)]
+    pub firebase_project_id: String,
 }
