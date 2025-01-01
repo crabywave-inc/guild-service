@@ -12,10 +12,12 @@ pub struct GetGuildResponseData(Guild);
 
 pub async fn get_guild<G: GuildService>(
     Extension(guild_service): Extension<Arc<G>>,
-    Path(guild_id): Path<String>,
+    //Extension(user_id): Extension<String>,
+    Path(id): Path<String>,
 ) -> Result<ApiSuccess<GetGuildResponseData>, ApiError> {
+    //println!("user_id: {}", user_id);
     guild_service
-        .find_by_id(&guild_id)
+        .find_by_id(&id)
         .await
         .map_err(ApiError::from)
         .map(|guild| ApiSuccess::new(StatusCode::OK, GetGuildResponseData(guild)))

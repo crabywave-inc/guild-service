@@ -39,10 +39,10 @@ impl From<GuildError> for ApiError {
                 ApiError::InternalServerError("Internal server error".to_string())
             }
             GuildError::NotFound => ApiError::NotFound("Guild not found".to_string()),
-            GuildError::CreateError(e) => {
-                ApiError::UnProcessableEntity(e)
-            }
+            GuildError::CreateError(e) => ApiError::UnProcessableEntity(e),
             GuildError::Unauthorized => ApiError::Unauthorized("Unauthorized".to_string()),
+            GuildError::DeleteError(e) => ApiError::InternalServerError(e),
+            GuildError::Forbidden => ApiError::Forbidden("Forbidden".to_string()),
         }
     }
 }

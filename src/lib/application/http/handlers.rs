@@ -1,4 +1,5 @@
 pub mod create_guild;
+pub mod delete_guild;
 pub mod get_guild;
 
 use crate::application::http::responses::ApiResponseError;
@@ -34,6 +35,7 @@ pub enum ApiError {
     UnProcessableEntity(String),
     NotFound(String),
     Unauthorized(String),
+    Forbidden(String),
 }
 
 impl From<anyhow::Error> for ApiError {
@@ -103,6 +105,15 @@ impl IntoResponse for ApiError {
                 StatusCode::UNAUTHORIZED,
                 Json(ApiResponseError {
                     code: "E_UNAUTHORIZED".to_string(),
+                    status: 403,
+                    message,
+                }),
+            )
+                .into_response(),
+            ApiError::Forbidden(message) => (
+                StatusCode::FORBIDDEN,
+                Json(ApiResponseError {
+                    code: "E_FORBIDDEN".to_string(),
                     status: 403,
                     message,
                 }),

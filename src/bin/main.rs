@@ -23,7 +23,8 @@ async fn main() -> anyhow::Result<()> {
     let guild_service = Arc::new(GuildServiceImpl::new(guild_repository));
 
     let server_config = HttpServerConfig::new(env.port.clone());
-    let http_server = HttpServer::new(server_config, Arc::clone(&guild_service)).await?;
+    let http_server =
+        HttpServer::new(server_config, Arc::clone(&env), Arc::clone(&guild_service)).await?;
 
     http_server.run().await
 }

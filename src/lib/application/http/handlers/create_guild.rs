@@ -1,3 +1,4 @@
+use crate::application::http::auth::UserPayload;
 use crate::application::http::handlers::{ApiError, ApiSuccess};
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::GuildService;
@@ -16,10 +17,12 @@ pub struct CreateGuildRequest {
 
 pub async fn create_guild<G: GuildService>(
     Extension(guild_service): Extension<Arc<G>>,
+    Extension(user): Extension<UserPayload>,
     Json(payload): Json<CreateGuildRequest>,
 ) -> Result<ApiSuccess<CreateGuildResponseData>, ApiError> {
+    println!("User is: {:?}", user);
     guild_service
-        .create_guild(&payload.name)
+        .create_guild(&payload.name, &user.id)
         .await
         .map_err(ApiError::from)
         .map(|guild| ApiSuccess::new(StatusCode::CREATED, CreateGuildResponseData(guild)))

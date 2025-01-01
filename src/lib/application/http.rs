@@ -1,15 +1,19 @@
+mod auth;
 mod handlers;
+mod policies;
 mod responses;
 
+use crate::application::http::auth::AuthenticationLayer;
 use crate::application::http::handlers::create_guild::create_guild;
+use crate::application::http::handlers::get_guild::get_guild;
 use crate::domain::guild::ports::GuildService;
+use crate::env::Env;
 use anyhow::Context;
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::Extension;
 use std::sync::Arc;
 use tokio::net;
 use tracing::{info, info_span};
-use crate::application::http::handlers::get_guild::get_guild;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HttpServerConfig {
@@ -28,6 +32,7 @@ where
     G: GuildService,
 {
     guild_service: Arc<G>,
+    auth_service_url: String,
 }
 
 pub struct HttpServer {
@@ -36,7 +41,11 @@ pub struct HttpServer {
 }
 
 impl HttpServer {
-    pub async fn new<G>(config: HttpServerConfig, guild_service: Arc<G>) -> anyhow::Result<Self>
+    pub async fn new<G>(
+        config: HttpServerConfig,
+        env: Arc<Env>,
+        guild_service: Arc<G>,
+    ) -> anyhow::Result<Self>
     where
         G: GuildService,
     {
@@ -47,12 +56,18 @@ impl HttpServer {
             },
         );
 
-        let state = AppState { guild_service };
+        let state = AppState {
+            guild_service,
+            auth_service_url: env.auth_service_url.clone(),
+        };
+
+        let auth_layer = AuthenticationLayer::new(env.auth_service_url.clone());
 
         let router = axum::Router::new()
             //.route("/", axum::handler::get(|| async { "Hello, World!" }))
             .nest("", api_routes())
             .layer(trace_layer)
+            .layer(auth_layer)
             .layer(Extension(Arc::clone(&state.guild_service)))
             .with_state(state);
 
@@ -80,6 +95,7 @@ fn api_routes<G>() -> axum::Router<AppState<G>>
 where
     G: GuildService,
 {
-    axum::Router::new().route("/guilds", post(create_guild::<G>))
-        .route("/guilds/:guild_id", post(get_guild::<G>))
+    axum::Router::new()
+        .route("/guilds", post(create_guild::<G>))
+        .route("/guilds/:id", get(get_guild::<G>))
 }
