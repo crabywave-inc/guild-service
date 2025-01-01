@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::warn;
+
 use crate::domain::guild::{entities::error::GuildError, ports::GuildService};
 
 pub struct GuildPolicy;
@@ -15,7 +17,10 @@ impl GuildPolicy {
             .await
             .map_err(|_| GuildError::Forbidden)?;
 
+        println!("{:?}", guild);
+
         if guild.owner_id != user_id {
+          warn!("User {} tried to delete guild {} without permission", user_id, guild_id);
             return Err(GuildError::Forbidden.into());
         }
         Ok(())

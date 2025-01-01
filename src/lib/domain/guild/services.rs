@@ -27,7 +27,7 @@ where
         self.guild_repository
             .create_guild(name, owner_id)
             .await
-            .map(|guild| Ok(guild))?
+            .map(Ok)?
     }
 
     async fn delete_guild(&self, _name: &str) -> Result<(), GuildError> {

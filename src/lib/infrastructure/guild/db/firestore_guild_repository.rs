@@ -2,7 +2,6 @@ use crate::domain::guild::entities::error::GuildError;
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::GuildRepository;
 use crate::infrastructure::db::firestore::Firestore;
-use std::future::Future;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]

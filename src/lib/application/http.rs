@@ -6,11 +6,13 @@ mod responses;
 use crate::application::http::auth::AuthenticationLayer;
 use crate::application::http::handlers::create_guild::create_guild;
 use crate::application::http::handlers::get_guild::get_guild;
+use crate::application::http::handlers::delete_guild::delete_guild;
 use crate::domain::guild::ports::GuildService;
 use crate::env::Env;
 use anyhow::Context;
-use axum::routing::{get, post};
+use axum::routing::{delete, get, post};
 use axum::Extension;
+
 use std::sync::Arc;
 use tokio::net;
 use tracing::{info, info_span};
@@ -32,7 +34,7 @@ where
     G: GuildService,
 {
     guild_service: Arc<G>,
-    auth_service_url: String,
+    _auth_service_url: String,
 }
 
 pub struct HttpServer {
@@ -58,7 +60,7 @@ impl HttpServer {
 
         let state = AppState {
             guild_service,
-            auth_service_url: env.auth_service_url.clone(),
+            _auth_service_url: env.auth_service_url.clone(),
         };
 
         let auth_layer = AuthenticationLayer::new(env.auth_service_url.clone());
@@ -98,4 +100,5 @@ where
     axum::Router::new()
         .route("/guilds", post(create_guild::<G>))
         .route("/guilds/:id", get(get_guild::<G>))
+        .route("/guilds/:id", delete(delete_guild::<G>))
 }

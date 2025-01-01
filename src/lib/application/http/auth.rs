@@ -119,6 +119,7 @@ struct VerifyResponse {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct UserPayload {
     pub email: String,
     pub id: String,
