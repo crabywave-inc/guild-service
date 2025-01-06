@@ -20,7 +20,6 @@ pub async fn create_guild<G: GuildService>(
     Extension(user): Extension<UserPayload>,
     Json(payload): Json<CreateGuildRequest>,
 ) -> Result<ApiSuccess<CreateGuildResponseData>, ApiError> {
-    println!("User is: {:?}", user);
     guild_service
         .create_guild(&payload.name, &user.id)
         .await

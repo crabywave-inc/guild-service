@@ -29,12 +29,12 @@ async fn main() -> anyhow::Result<()> {
 
     init_logger(Arc::clone(&env));
 
-    let _messaging_port =
+    let messaging_port =
         Arc::new(MessagingTypeImpl::new(&MessagingType::PubSub, Arc::clone(&env)).await?);
 
     let firestore = Arc::new(Firestore::new(Arc::clone(&env)).await?);
     let guild_repository = FirestoreGuildRepository::new(Arc::clone(&firestore));
-    let guild_service = Arc::new(GuildServiceImpl::new(guild_repository));
+    let guild_service = Arc::new(GuildServiceImpl::new(guild_repository, Arc::clone(&messaging_port)));
 
     let server_config = HttpServerConfig::new(env.port.clone());
     let http_server =

@@ -1,33 +1,44 @@
+use std::sync::Arc;
+
+use crate::application::ports::messaging_ports::MessagingPort;
 use crate::domain::guild::entities::error::GuildError;
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::{GuildRepository, GuildService};
 
 #[derive(Debug, Clone)]
-pub struct GuildServiceImpl<G>
+pub struct GuildServiceImpl<G, M>
 where
     G: GuildRepository,
+    M: MessagingPort
 {
     pub guild_repository: G,
+    pub messaging: Arc<M>
 }
 
-impl<G> GuildServiceImpl<G>
+impl<G, M> GuildServiceImpl<G, M>
 where
     G: GuildRepository,
+    M: MessagingPort
 {
-    pub fn new(guild_repository: G) -> Self {
-        Self { guild_repository }
+    pub fn new(guild_repository: G, messaging: Arc<M>) -> Self {
+        Self { guild_repository, messaging }
     }
 }
 
-impl<G> GuildService for GuildServiceImpl<G>
+impl<G, M> GuildService for GuildServiceImpl<G, M>
 where
     G: GuildRepository,
+    M: MessagingPort
 {
     async fn create_guild(&self, name: &str, owner_id: &str) -> Result<Guild, GuildError> {
-        self.guild_repository
+        let guild = self.guild_repository
             .create_guild(name, owner_id)
-            .await
-            .map(Ok)?
+            .await?;
+
+        // Create message in topic
+
+
+        Ok(guild)
     }
 
     async fn delete_guild(&self, _name: &str) -> Result<(), GuildError> {
