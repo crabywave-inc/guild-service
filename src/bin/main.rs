@@ -3,17 +3,31 @@ use clap::Parser;
 use guild::application::http::{HttpServer, HttpServerConfig};
 use guild::application::ports::messaging_ports::{MessagingType, MessagingTypeImpl};
 use guild::domain::guild::services::GuildServiceImpl;
-use guild::env::Env;
+use guild::env::{AppEnv, Env};
 use guild::infrastructure::db::firestore::Firestore;
 use guild::infrastructure::guild::db::firestore_guild_repository::FirestoreGuildRepository;
 use std::sync::Arc;
 
+fn init_logger(env: Arc<Env>) {
+    match env.env {
+        AppEnv::Development => {
+            tracing_subscriber::fmt::init();
+        }
+        AppEnv::Production => {
+            tracing_subscriber::fmt()
+            .json()
+            .with_max_level(tracing::Level::INFO)
+            .init();
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
-    tracing_subscriber::fmt::init();
-
     let env = Arc::new(Env::parse());
+
+    init_logger(Arc::clone(&env));
 
     let _messaging_port =
         Arc::new(MessagingTypeImpl::new(&MessagingType::PubSub, Arc::clone(&env)).await?);
