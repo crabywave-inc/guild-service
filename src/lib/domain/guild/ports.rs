@@ -14,6 +14,10 @@ pub trait GuildService: Clone + Send + Sync + 'static {
     fn get_guilds(&self) -> impl Future<Output = Result<Vec<Guild>, GuildError>> + Send;
     fn update_guild(&self, name: &str) -> impl Future<Output = Result<(), GuildError>> + Send;
     fn delete_by_id(&self, id: &str) -> impl Future<Output = Result<(), GuildError>> + Send;
+    fn find_by_user_id(
+        &self,
+        user_id: &str,
+    ) -> impl Future<Output = Result<Vec<Guild>, GuildError>> + Send;
 }
 
 pub trait GuildRepository: Clone + Send + Sync + 'static {
@@ -27,4 +31,9 @@ pub trait GuildRepository: Clone + Send + Sync + 'static {
         id: &str,
     ) -> impl Future<Output = Result<Option<Guild>, GuildError>> + Send;
     fn delete_by_id(&self, id: &str) -> impl Future<Output = Result<(), GuildError>> + Send;
+
+    fn find_by_user_id(
+        &self,
+        user_id: &str,
+    ) -> impl Future<Output = Result<Vec<Guild>, GuildError>> + Send;
 }
