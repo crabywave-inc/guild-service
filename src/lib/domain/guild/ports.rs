@@ -8,7 +8,6 @@ pub trait GuildService: Clone + Send + Sync + 'static {
         name: &str,
         owner_id: &str,
     ) -> impl Future<Output = Result<Guild, GuildError>> + Send;
-    fn delete_guild(&self, name: &str) -> impl Future<Output = Result<(), GuildError>> + Send;
     fn find_by_name(&self, name: &str) -> impl Future<Output = Result<Guild, GuildError>> + Send;
     fn find_by_id(&self, id: &str) -> impl Future<Output = Result<Guild, GuildError>> + Send;
     fn get_guilds(&self) -> impl Future<Output = Result<Vec<Guild>, GuildError>> + Send;

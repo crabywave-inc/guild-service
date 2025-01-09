@@ -62,7 +62,9 @@ where
             .get("Authorization")
             .and_then(|header| header.to_str().ok())
             .and_then(|header| {
-                header.strip_prefix("Bearer ").map(|token| token.to_string())
+                header
+                    .strip_prefix("Bearer ")
+                    .map(|token| token.to_string())
             });
 
         if token.is_none() {

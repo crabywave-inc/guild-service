@@ -6,6 +6,7 @@ use super::entities::model::Guild;
 
 pub enum GuildEvent {
     Create,
+    Delete,
 }
 
 pub enum RoleEvent {
@@ -17,6 +18,7 @@ impl Display for GuildEvent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             GuildEvent::Create => write!(f, "guild-created"),
+            GuildEvent::Delete => write!(f, "guild-deleted"),
         }
     }
 }
@@ -37,6 +39,11 @@ pub struct CreateGuildMessageEvent {
     pub id: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GuildDeletedMessageEvent {
+    pub id: String,
+}
+
 impl CreateGuildMessageEvent {
     pub fn from_guild(guild: &Guild) -> Self {
         Self {
@@ -44,5 +51,11 @@ impl CreateGuildMessageEvent {
             owner_id: guild.owner_id.clone(),
             id: guild.id.clone(),
         }
+    }
+}
+
+impl GuildDeletedMessageEvent {
+    pub fn new(id: &str) -> Self {
+        Self { id: id.to_string() }
     }
 }

@@ -14,7 +14,7 @@ pub struct GetUserGuildsResponseData(Vec<Guild>);
 
 pub async fn get_user_guilds<G: GuildService>(
     Extension(guild_service): Extension<Arc<G>>,
-    Extension(user): Extension<UserPayload>
+    Extension(user): Extension<UserPayload>,
 ) -> Result<ApiSuccess<GetUserGuildsResponseData>, ApiError> {
     guild_service
         .find_by_user_id(&user.id)

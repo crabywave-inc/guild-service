@@ -7,7 +7,7 @@ use crate::domain::guild::entities::error::GuildError;
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::{GuildRepository, GuildService};
 
-use super::events::{CreateGuildMessageEvent, GuildEvent};
+use super::events::{CreateGuildMessageEvent, GuildDeletedMessageEvent, GuildEvent};
 
 #[derive(Debug, Clone)]
 pub struct GuildServiceImpl<G, M>
@@ -58,10 +58,6 @@ where
         Ok(guild)
     }
 
-    async fn delete_guild(&self, _name: &str) -> Result<(), GuildError> {
-        todo!()
-    }
-
     async fn find_by_name(&self, _name: &str) -> Result<Guild, GuildError> {
         todo!()
     }
@@ -84,7 +80,17 @@ where
     }
 
     async fn delete_by_id(&self, id: &str) -> Result<(), GuildError> {
-        self.guild_repository.delete_by_id(id).await
+        self.guild_repository.delete_by_id(id).await?;
+
+        let message = serde_json::to_string(&GuildDeletedMessageEvent::new(id))
+            .map_err(|e| GuildError::DeleteError(e.to_string()))?;
+
+        self.messaging
+            .publish_message(GuildEvent::Delete.to_string(), message)
+            .await
+            .map_err(|e| GuildError::DeleteError(e.to_string()))?;
+
+        Ok(())
     }
 
     async fn find_by_user_id(&self, user_id: &str) -> Result<Vec<Guild>, GuildError> {
