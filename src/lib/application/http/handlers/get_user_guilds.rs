@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::http::StatusCode;
-use axum::{extract::Path, Extension};
+use axum::Extension;
 use serde::Serialize;
 
 use crate::application::http::auth::UserPayload;
