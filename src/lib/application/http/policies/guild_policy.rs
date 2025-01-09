@@ -18,7 +18,10 @@ impl GuildPolicy {
             .map_err(|_| GuildError::Forbidden)?;
 
         if guild.owner_id != user_id {
-          warn!("User {} tried to delete guild {} without permission", user_id, guild_id);
+            warn!(
+                "User {} tried to delete guild {} without permission",
+                user_id, guild_id
+            );
             return Err(GuildError::Forbidden.into());
         }
         Ok(())
