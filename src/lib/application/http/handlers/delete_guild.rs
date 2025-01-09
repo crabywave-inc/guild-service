@@ -17,14 +17,20 @@ pub async fn delete_guild<G: GuildService>(
     Extension(user): Extension<UserPayload>,
     Path(id): Path<String>,
 ) -> Result<ApiSuccess<DeleteGuildResponseData>, ApiError> {
-  
     GuildPolicy::delete(&user.id, &id, Arc::clone(&guild_service))
-      .await
-      .map_err(|_| ApiError::Forbidden("You're not allowed to delete the guild".to_string()))?;
+        .await
+        .map_err(|_| ApiError::Forbidden("You're not allowed to delete the guild".to_string()))?;
 
     guild_service
         .delete_by_id(&id)
         .await
         .map_err(ApiError::from)
-        .map(|_| ApiSuccess::new(StatusCode::OK, DeleteGuildResponseData { message: "Guild deleted".to_string() }))
+        .map(|_| {
+            ApiSuccess::new(
+                StatusCode::OK,
+                DeleteGuildResponseData {
+                    message: "Guild deleted".to_string(),
+                },
+            )
+        })
 }
