@@ -1,6 +1,7 @@
 pub mod create_guild;
 pub mod delete_guild;
 pub mod get_guild;
+pub mod get_user_guilds;
 
 use crate::application::http::responses::ApiResponseError;
 use axum::{http::StatusCode, response::IntoResponse, Json};

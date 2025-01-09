@@ -4,7 +4,7 @@ use clap::{Parser, ValueEnum};
 pub enum AppEnv {
     Production,
     #[default]
-    Development
+    Development,
 }
 
 #[derive(Debug, Clone, Default, Parser)]

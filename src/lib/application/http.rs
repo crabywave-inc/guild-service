@@ -5,8 +5,10 @@ mod responses;
 
 use crate::application::http::auth::AuthenticationLayer;
 use crate::application::http::handlers::create_guild::create_guild;
-use crate::application::http::handlers::get_guild::get_guild;
 use crate::application::http::handlers::delete_guild::delete_guild;
+use crate::application::http::handlers::get_guild::get_guild;
+use handlers::get_user_guilds::get_user_guilds;
+
 use crate::domain::guild::ports::GuildService;
 use crate::env::Env;
 use anyhow::Context;
@@ -101,4 +103,5 @@ where
         .route("/guilds", post(create_guild::<G>))
         .route("/guilds/:id", get(get_guild::<G>))
         .route("/guilds/:id", delete(delete_guild::<G>))
+        .route("/users/@me/guilds", get(get_user_guilds::<G>))
 }

@@ -15,9 +15,9 @@ fn init_logger(env: Arc<Env>) {
         }
         AppEnv::Production => {
             tracing_subscriber::fmt()
-            .json()
-            .with_max_level(tracing::Level::INFO)
-            .init();
+                .json()
+                .with_max_level(tracing::Level::INFO)
+                .init();
         }
     }
 }
@@ -34,7 +34,10 @@ async fn main() -> anyhow::Result<()> {
 
     let firestore = Arc::new(Firestore::new(Arc::clone(&env)).await?);
     let guild_repository = FirestoreGuildRepository::new(Arc::clone(&firestore));
-    let guild_service = Arc::new(GuildServiceImpl::new(guild_repository, Arc::clone(&messaging_port)));
+    let guild_service = Arc::new(GuildServiceImpl::new(
+        guild_repository,
+        Arc::clone(&messaging_port),
+    ));
 
     let server_config = HttpServerConfig::new(env.port.clone());
     let http_server =
