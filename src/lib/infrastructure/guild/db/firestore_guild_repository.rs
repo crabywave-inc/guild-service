@@ -73,4 +73,20 @@ impl GuildRepository for FirestoreGuildRepository {
         info!("Guild with id: {} deleted", id);
         Ok(())
     }
+
+    async fn find_by_user_id(&self, user_id: &str) -> Result<Vec<Guild>, GuildError> {
+        let guilds: Vec<Guild> = self
+            .firestore
+            .db
+            .fluent()
+            .select()
+            .from("guilds")
+            .filter(|q| q.for_all([q.field("owner_id").eq(user_id)]))
+            .obj()
+            .query()
+            .await
+            .map_err(|_| GuildError::NotFound)?;
+
+        Ok(guilds)
+    }
 }
