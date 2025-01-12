@@ -66,14 +66,16 @@ impl MessagingPort for MessagingTypeImpl {
         }
     }
 
-    async fn subscribe<F, T, Fut>(&self, topic: &str, handler: F) -> Result<()>
+    async fn subscribe<F, T, Fut>(&self, topic: &str, group_id: &str, handler: F) -> Result<()>
     where
         F: Fn(T) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<()>> + Send + 'static,
         T: DeserializeOwned + Send + Sync + Debug + Clone + 'static,
     {
         match self {
-            MessagingTypeImpl::PubSub(messaging) => messaging.subscribe(topic, handler).await,
+            MessagingTypeImpl::PubSub(messaging) => {
+                messaging.subscribe(topic, group_id, handler).await
+            }
         }
     }
 }
@@ -87,6 +89,7 @@ pub trait MessagingPort: Clone + Send + Sync + 'static {
     fn subscribe<F, T, Fut>(
         &self,
         topic: &str,
+        group_id: &str,
         handler: F,
     ) -> impl Future<Output = anyhow::Result<()>> + Send
     where

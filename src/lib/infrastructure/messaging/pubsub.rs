@@ -3,7 +3,6 @@ use anyhow::Result;
 use futures::StreamExt;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
 use google_cloud_pubsub::client::{Client, ClientConfig};
-use google_cloud_pubsub::subscription::SubscriptionConfig;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -48,22 +47,15 @@ impl MessagingPort for PubSubMessaging {
         Ok(())
     }
 
-    async fn subscribe<F, T, Fut>(&self, queue: &str, handler: F) -> Result<()>
+    async fn subscribe<F, T, Fut>(&self, _topic: &str, group_id: &str, handler: F) -> Result<()>
     where
         F: Fn(T) -> Fut + Send + Sync + 'static,
         Fut: std::future::Future<Output = Result<()>> + Send + 'static,
         T: serde::de::DeserializeOwned + Send + Sync + std::fmt::Debug + 'static,
     {
-        let _topic = self.client.topic(queue);
+        let subscription_name = format!("projects/{}/subscriptions/{}", self.project_id, group_id);
 
-        let _config = SubscriptionConfig {
-            enable_message_ordering: true,
-            ..Default::default()
-        };
-
-        let topic_name = format!("projects/{}/subscriptions/{}", self.project_id, queue);
-
-        let subscription = self.client.subscription(&topic_name);
+        let subscription = self.client.subscription(&subscription_name);
         let mut stream = subscription.subscribe(None).await?;
 
         tokio::spawn(async move {
