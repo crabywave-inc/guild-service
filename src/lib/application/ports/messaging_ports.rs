@@ -60,7 +60,7 @@ impl MessagingTypeImpl {
 }
 
 impl MessagingPort for MessagingTypeImpl {
-    async fn publish_message(&self, topic: String, message: String) -> Result<()> {
+    async fn publish_message<T: serde::Serialize + Sync + Send>(&self, topic: String, message: T) -> Result<()> {
         match self {
             MessagingTypeImpl::PubSub(messaging) => messaging.publish_message(topic, message).await,
         }
@@ -81,11 +81,13 @@ impl MessagingPort for MessagingTypeImpl {
 }
 
 pub trait MessagingPort: Clone + Send + Sync + 'static {
-    fn publish_message(
+    fn publish_message<T>(
         &self,
         topic: String,
-        message: String,
-    ) -> impl Future<Output = anyhow::Result<()>> + Send;
+        message: T,
+    ) -> impl Future<Output = anyhow::Result<()>> + Send
+    where
+        T: serde::Serialize + Send + Sync;
     fn subscribe<F, T, Fut>(
         &self,
         topic: &str,

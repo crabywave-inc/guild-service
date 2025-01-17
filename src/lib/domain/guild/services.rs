@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tracing::error;
+use tracing::{error, info};
 
 use crate::application::ports::messaging_ports::MessagingPort;
 use crate::domain::guild::entities::error::GuildError;
@@ -48,10 +48,13 @@ where
         let guild = self.guild_repository.create_guild(name, owner_id).await?;
 
         // Create message in topic
-        let message = serde_json::to_string(&CreateGuildMessageEvent::from_guild(&guild)).unwrap();
+
+        info!("Guild created: {:?}", guild);
+        let event = CreateGuildMessageEvent::from_guild(&guild);
+        //let message = serde_json::to_string(&CreateGuildMessageEvent::from_guild(&guild)).unwrap();
 
         self.messaging
-            .publish_message(GuildEvent::Create.to_string(), message)
+            .publish_message(GuildEvent::Create.to_string(), event)
             .await
             .map_err(|e| GuildError::CreateError(e.to_string()))?;
 
