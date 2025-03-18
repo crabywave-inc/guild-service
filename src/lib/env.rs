@@ -1,3 +1,5 @@
+use std::fmt::Error;
+
 use clap::{Parser, ValueEnum};
 
 #[derive(Debug, Clone, ValueEnum, Default)]
@@ -23,6 +25,9 @@ pub struct Env {
 
     #[clap(env)]
     pub firebase_project_id: String,
+
+    #[clap(env)]
+    pub database_url: String,
 
     #[clap(env, default_value = "development", value_enum)]
     pub env: AppEnv,

@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use super::entities::model::Guild;
 
@@ -35,13 +36,13 @@ impl Display for RoleEvent {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateGuildMessageEvent {
     pub name: String,
-    pub owner_id: String,
-    pub id: String,
+    pub owner_id: Uuid,
+    pub id: Uuid,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GuildDeletedMessageEvent {
-    pub id: String,
+    pub id: Uuid,
 }
 
 impl CreateGuildMessageEvent {
@@ -55,7 +56,7 @@ impl CreateGuildMessageEvent {
 }
 
 impl GuildDeletedMessageEvent {
-    pub fn new(id: &str) -> Self {
-        Self { id: id.to_string() }
+    pub fn new(id: Uuid) -> Self {
+        Self { id }
     }
 }

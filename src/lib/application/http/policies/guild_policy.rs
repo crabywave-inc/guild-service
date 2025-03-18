@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use tracing::warn;
+use uuid::Uuid;
 
 use crate::domain::guild::{entities::error::GuildError, ports::GuildService};
 
@@ -8,8 +9,8 @@ pub struct GuildPolicy;
 
 impl GuildPolicy {
     pub async fn delete<G: GuildService>(
-        user_id: &str,
-        guild_id: &str,
+        user_id: Uuid,
+        guild_id: Uuid,
         guild_service: Arc<G>,
     ) -> Result<(), anyhow::Error> {
         let guild = guild_service

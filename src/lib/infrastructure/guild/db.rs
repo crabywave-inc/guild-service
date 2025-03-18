@@ -1,1 +1,1 @@
-pub mod firestore_guild_repository;
+pub mod postgres_guild_repository;

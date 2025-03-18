@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
-use tracing::{error, info};
+use tracing::info;
+use uuid::Uuid;
 
 use crate::application::ports::messaging_ports::MessagingPort;
 use crate::domain::guild::entities::error::GuildError;
 use crate::domain::guild::entities::model::Guild;
 use crate::domain::guild::ports::{GuildRepository, GuildService};
 
-use super::events::{CreateGuildMessageEvent, GuildDeletedMessageEvent, GuildEvent};
+use super::events::{GuildDeletedMessageEvent, GuildEvent};
 
 #[derive(Debug, Clone)]
 pub struct GuildServiceImpl<G, M>
@@ -37,26 +38,26 @@ where
     G: GuildRepository,
     M: MessagingPort,
 {
-    async fn create_guild(&self, name: &str, owner_id: &str) -> Result<Guild, GuildError> {
-        let guilds = self.guild_repository.find_by_user_id(owner_id).await?;
+    async fn create_guild(&self, name: &str, owner_id: Uuid) -> Result<Guild, GuildError> {
+        // let guilds = self.guild_repository.find_by_user_id(owner_id).await?;
 
-        if guilds.len() > 10 {
-            error!("User {} has reached the maximum number of guilds", owner_id);
-            return Err(GuildError::Forbidden);
-        }
+        // if guilds.len() > 10 {
+        //     error!("User {} has reached the maximum number of guilds", owner_id);
+        //     return Err(GuildError::Forbidden);
+        // }
 
         let guild = self.guild_repository.create_guild(name, owner_id).await?;
 
         // Create message in topic
 
         info!("Guild created: {:?}", guild);
-        let event = CreateGuildMessageEvent::from_guild(&guild);
-        //let message = serde_json::to_string(&CreateGuildMessageEvent::from_guild(&guild)).unwrap();
+        // let event = CreateGuildMessageEvent::from_guild(&guild);
+        // //let message = serde_json::to_string(&CreateGuildMessageEvent::from_guild(&guild)).unwrap();
 
-        self.messaging
-            .publish_message(GuildEvent::Create.to_string(), event)
-            .await
-            .map_err(|e| GuildError::CreateError(e.to_string()))?;
+        // self.messaging
+        //     .publish_message(GuildEvent::Create.to_string(), event)
+        //     .await
+        //     .map_err(|e| GuildError::CreateError(e.to_string()))?;
 
         Ok(guild)
     }
@@ -65,7 +66,7 @@ where
         todo!()
     }
 
-    async fn find_by_id(&self, id: &str) -> Result<Guild, GuildError> {
+    async fn find_by_id(&self, id: Uuid) -> Result<Guild, GuildError> {
         let guild = self.guild_repository.find_by_id(id).await?;
 
         match guild {
@@ -82,10 +83,10 @@ where
         todo!()
     }
 
-    async fn delete_by_id(&self, id: &str) -> Result<(), GuildError> {
-        self.guild_repository.delete_by_id(id).await?;
+    async fn delete_by_id(&self, id: Uuid) -> Result<(), GuildError> {
+        self.guild_repository.delete_by_id(id.clone()).await?;
 
-        let message = serde_json::to_string(&GuildDeletedMessageEvent::new(id))
+        let message = serde_json::to_string(&GuildDeletedMessageEvent::new(id.clone()))
             .map_err(|e| GuildError::DeleteError(e.to_string()))?;
 
         self.messaging
@@ -96,7 +97,7 @@ where
         Ok(())
     }
 
-    async fn find_by_user_id(&self, user_id: &str) -> Result<Vec<Guild>, GuildError> {
+    async fn find_by_user_id(&self, user_id: Uuid) -> Result<Vec<Guild>, GuildError> {
         self.guild_repository.find_by_user_id(user_id).await
     }
 }

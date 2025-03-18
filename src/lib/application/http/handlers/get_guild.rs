@@ -4,20 +4,26 @@ use crate::domain::guild::ports::GuildService;
 use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::Extension;
-use serde::Serialize;
+use axum_extra::routing::TypedPath;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Serialize)]
 pub struct GetGuildResponseData(Guild);
 
+#[derive(Deserialize, TypedPath)]
+#[typed_path("/v1/guilds/{id}")]
+pub struct GetGuildRoute {
+    id: Uuid,
+}
+
 pub async fn get_guild<G: GuildService>(
+    GetGuildRoute { id }: GetGuildRoute,
     Extension(guild_service): Extension<Arc<G>>,
-    //Extension(user_id): Extension<String>,
-    Path(id): Path<String>,
 ) -> Result<ApiSuccess<GetGuildResponseData>, ApiError> {
-    //println!("user_id: {}", user_id);
     guild_service
-        .find_by_id(&id)
+        .find_by_id(id)
         .await
         .map_err(ApiError::from)
         .map(|guild| ApiSuccess::new(StatusCode::OK, GetGuildResponseData(guild)))

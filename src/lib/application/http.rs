@@ -3,17 +3,22 @@ mod handlers;
 mod policies;
 mod responses;
 
-use crate::application::http::auth::AuthenticationLayer;
 use crate::application::http::handlers::create_guild::create_guild;
 use crate::application::http::handlers::delete_guild::delete_guild;
 use crate::application::http::handlers::get_guild::get_guild;
+use auth::AuthenticationLayer;
+use axum::body::Body;
+use axum::extract::{Request, State};
+use axum::middleware::Next;
+use axum_extra::routing::RouterExt;
+use handlers::{create_guild, get_user_guilds};
 use handlers::get_user_guilds::get_user_guilds;
 
 use crate::domain::guild::ports::GuildService;
 use crate::env::Env;
 use anyhow::Context;
 use axum::routing::{delete, get, post};
-use axum::Extension;
+use axum::{middleware, Extension};
 
 use std::sync::Arc;
 use tokio::net;
@@ -30,13 +35,12 @@ impl HttpServerConfig {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct AppState<G>
 where
     G: GuildService,
 {
     guild_service: Arc<G>,
-    _auth_service_url: String,
 }
 
 pub struct HttpServer {
@@ -60,16 +64,12 @@ impl HttpServer {
             },
         );
 
-        let state = AppState {
-            guild_service,
-            _auth_service_url: env.auth_service_url.clone(),
-        };
+        let state = AppState { guild_service };
 
-        let auth_layer = AuthenticationLayer::new(env.auth_service_url.clone());
+        let auth_layer = AuthenticationLayer::new("t".to_string());
 
         let router = axum::Router::new()
-            //.route("/", axum::handler::get(|| async { "Hello, World!" }))
-            .nest("", api_routes())
+            .merge(api_routes())
             .layer(trace_layer)
             .layer(auth_layer)
             .layer(Extension(Arc::clone(&state.guild_service)))
@@ -100,8 +100,8 @@ where
     G: GuildService,
 {
     axum::Router::new()
-        .route("/guilds", post(create_guild::<G>))
-        .route("/guilds/:id", get(get_guild::<G>))
-        .route("/guilds/:id", delete(delete_guild::<G>))
-        .route("/users/@me/guilds", get(get_user_guilds::<G>))
+        .typed_get(create_guild::<G>)
+        .typed_get(get_guild::<G>)
+        .typed_get(get_user_guilds::<G>)
+        .typed_delete(delete_guild::<G>)
 }

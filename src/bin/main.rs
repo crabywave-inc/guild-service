@@ -4,8 +4,8 @@ use guild::application::http::{HttpServer, HttpServerConfig};
 use guild::application::ports::messaging_ports::{MessagingType, MessagingTypeImpl};
 use guild::domain::guild::services::GuildServiceImpl;
 use guild::env::{AppEnv, Env};
-use guild::infrastructure::db::firestore::Firestore;
-use guild::infrastructure::guild::db::firestore_guild_repository::FirestoreGuildRepository;
+use guild::infrastructure::db::postgres::Postgres;
+use guild::infrastructure::guild::db::postgres_guild_repository::PostgresGuildRepository;
 use std::sync::Arc;
 
 fn init_logger(env: Arc<Env>) {
@@ -32,8 +32,9 @@ async fn main() -> anyhow::Result<()> {
     let messaging_port =
         Arc::new(MessagingTypeImpl::new(&MessagingType::PubSub, Arc::clone(&env)).await?);
 
-    let firestore = Arc::new(Firestore::new(Arc::clone(&env)).await?);
-    let guild_repository = FirestoreGuildRepository::new(Arc::clone(&firestore));
+    let postgres = Arc::new(Postgres::new(Arc::clone(&env)).await?);
+
+    let guild_repository = PostgresGuildRepository::new(Arc::clone(&postgres));
     let guild_service = Arc::new(GuildServiceImpl::new(
         guild_repository,
         Arc::clone(&messaging_port),

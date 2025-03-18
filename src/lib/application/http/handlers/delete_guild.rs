@@ -1,9 +1,13 @@
+use crate::application::http::auth::Identity;
 use crate::application::http::policies::guild_policy::GuildPolicy;
-use crate::{application::http::auth::UserPayload, domain::guild::ports::GuildService};
+use crate::domain::guild::entities::error::GuildError;
+use crate::domain::guild::ports::GuildService;
 use axum::http::StatusCode;
 use axum::{extract::Path, Extension};
-use serde::Serialize;
+use axum_extra::routing::TypedPath;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use uuid::Uuid;
 
 use crate::application::http::handlers::{ApiError, ApiSuccess};
 
@@ -12,17 +16,34 @@ pub struct DeleteGuildResponseData {
     message: String,
 }
 
+#[derive(Deserialize, TypedPath)]
+#[typed_path("/v1/guilds/{id}")]
+pub struct DeleteGuildRoute {
+    id: Uuid,
+}
+
 pub async fn delete_guild<G: GuildService>(
+    DeleteGuildRoute { id }: DeleteGuildRoute,
     Extension(guild_service): Extension<Arc<G>>,
-    Extension(user): Extension<UserPayload>,
-    Path(id): Path<String>,
+    Extension(identity): Extension<Identity>,
 ) -> Result<ApiSuccess<DeleteGuildResponseData>, ApiError> {
-    GuildPolicy::delete(&user.id, &id, Arc::clone(&guild_service))
+    let user = match identity {
+        Identity::User(user) => user,
+        _ => {
+            return Err(ApiError::Forbidden(
+                "You're not allowed to delete the guild".to_string(),
+            ))
+        }
+    };
+
+    let user_id = Uuid::parse_str(&user.sub).map_err(|_| GuildError::NotFound)?;
+
+    GuildPolicy::delete(user_id, id.clone(), Arc::clone(&guild_service))
         .await
         .map_err(|_| ApiError::Forbidden("You're not allowed to delete the guild".to_string()))?;
 
     guild_service
-        .delete_by_id(&id)
+        .delete_by_id(id)
         .await
         .map_err(ApiError::from)
         .map(|_| {

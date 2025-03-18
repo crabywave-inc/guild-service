@@ -60,7 +60,11 @@ impl MessagingTypeImpl {
 }
 
 impl MessagingPort for MessagingTypeImpl {
-    async fn publish_message<T: serde::Serialize + Sync + Send>(&self, topic: String, message: T) -> Result<()> {
+    async fn publish_message<T: serde::Serialize + Sync + Send>(
+        &self,
+        topic: String,
+        message: T,
+    ) -> Result<()> {
         match self {
             MessagingTypeImpl::PubSub(messaging) => messaging.publish_message(topic, message).await,
         }
